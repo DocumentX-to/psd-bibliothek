@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSD-Bibliothek - Bearbeitung ohne Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1em;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .psd-gallery {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 20px 0;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #e8f5e8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .psd-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .psd-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .psd-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .psd-preview {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: #666;
+        }
+
+        .psd-info {
+            padding: 20px;
+        }
+
+        .psd-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .psd-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .psd-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #218838;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .editor-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: 600px;
+            display: none;
+        }
+
+        .editor-header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 0 5px;
+        }
+
+        .control-btn:hover {
+            background: #2980b9;
+        }
+
+        .control-btn.save {
+            background: #27ae60;
+        }
+
+        .control-btn.save:hover {
+            background: #229954;
+        }
+
+        #photopea-frame {
+            width: 100%;
+            height: 700px;
+            border: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toggle-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn:hover {
+            background: #5a6268;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📁 PSD-Bibliothek</h1>
+        <p>Wählen Sie eine PSD-Datei aus der Bibliothek und bearbeiten Sie sie direkt im Browser</p>
+    </div>
+
+    <div class="main-container">
+        <!-- Admin-Bereich zum Hochladen -->
+        <div class="admin-section">
+            <button class="toggle-btn" onclick="toggleAdminSection()">
+                🔧 Admin-Bereich ein/ausblenden
+            </button>
+            
+            <div id="adminPanel" class="hidden">
+                <h2>PSD-Dateien zur Bibliothek hinzufügen</h2>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div style="font-size: 3em; margin-bottom: 15px;">📁</div>
+                    <h3>PSD-Dateien hier hinziehen oder klicken</h3>
+                    <p>Unterstützte Formate: PSD, AI, XD, Sketch</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".psd,.ai,.xd,.sketch" multiple>
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        📁 PSD-Dateien auswählen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PSD-Galerie -->
+        <div class="psd-gallery">
+            <h2>📚 Verfügbare PSD-Dateien</h2>
+            <p style="color: #666; margin-bottom: 20px;">Klicken Sie auf "Bearbeiten" um eine Datei in Photopea zu öffnen</p>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Lade Photopea Editor...</p>
+            </div>
+
+            <div class="psd-grid" id="psdGrid">
+                <!-- Beispiel-PSD-Dateien (werden dynamisch geladen) -->
+                <div class="psd-card">
+                    <div class="psd-preview">🎨</div>
+                    <div class="psd-info">
+                        <div class="psd-title">Beispiel-Design.psd</div>
+                        <div class="psd-meta">Größe: 15.2 MB • Hinzugefügt: Heute</div>
+                        <div class="psd-actions">
+                            <button class="action-btn edit-btn" onclick="editPSD('beispiel-design.psd', 'Beispiel-Design.psd')">
+                                🖊️ Bearbeiten
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deletePSD('beispiel-design.psd')">
+                                🗑️ Löschen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photopea Editor -->
+        <div class="editor-container" id="editorContainer">
+            <div class="editor-header">
+                <h3 id="editorTitle">Photopea Editor</h3>
+                <div>
+                    <button class="control-btn save" onclick="saveFile()">💾 Speichern</button>
+                    <button class="control-btn" onclick="closeEditor()">❌ Schließen</button>
+                </div>
+            </div>
+            <iframe id="photopea-frame" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Simulierte PSD-Bibliothek (in echter Anwendung: Server-Database)
+        let psdLibrary = [
+            {
+                id: 'beispiel-design',
+                filename: 'Beispiel-Design.psd',
+                size: '15.2 MB',
+                uploaded: 'Heute',
+                preview: '🎨'
+            },
+            {
+                id: 'logo-vorlage',
+                filename: 'Logo-Vorlage.psd',
+                size: '8.7 MB',
+                uploaded: 'Gestern',
+                preview: '🏷️'
+            },
+            {
+                id: 'website-mockup',
+                filename: 'Website-Mockup.psd',
+                size: '22.4 MB',
+                uploaded: 'Vor 2 Tagen',
+                preview: '💻'
+            }
+        ];
+
+        let uploadedFiles = new Map(); // Speichert hochgeladene Dateien temporär
+
+        // Drag & Drop für Upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFileUpload(files);
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFileUpload(e.target.files);
+        });
+
+        function handleFileUpload(files) {
+            Array.from(files).forEach(file => {
+                if (file.name.toLowerCase().endsWith('.psd') || 
+                    file.name.toLowerCase().endsWith('.ai') || 
+                    file.name.toLowerCase().endsWith('.xd') || 
+                    file.name.toLowerCase().endsWith('.sketch')) {
+                    
+                    addPSDToLibrary(file);
+                }
+            });
+        }
+
+        function addPSDToLibrary(file) {
+            const fileId = generateId(file.name);
+            
+            // Datei temporär speichern
+            uploadedFiles.set(fileId, file);
+            
+            // Zur Bibliothek hinzufügen
+            const psdItem = {
+                id: fileId,
+                filename: file.name,
+                size: (file.size / 1024 / 1024).toFixed(1) + ' MB',
+                uploaded: 'Gerade eben',
+                preview: getFileTypeIcon(file.name),
+                isUploaded: true
+            };
+            
+            psdLibrary.push(psdItem);
+            renderPSDGallery();
+            
+            alert(`✅ "${file.name}" wurde zur Bibliothek hinzugefügt!`);
+        }
+
+        function generateId(filename) {
+            return filename.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now();
+        }
+
+        function getFileTypeIcon(filename) {
+            const ext = filename.toLowerCase().split('.').pop();
+            const icons = {
+                'psd': '🎨',
+                'ai': '🎯',
+                'xd': '📱',
+                'sketch': '✏️'
+            };
+            return icons[ext] || '📄';
+        }
+
+        function renderPSDGallery() {
+            const grid = document.getElementById('psdGrid');
+            grid.innerHTML = '';
+            
+            psdLibrary.forEach(psd => {
+                const card = document.createElement('div');
+                card.className = 'psd-card';
+                card.innerHTML = `
+                    <div class="psd-preview">${psd.preview}</div>
+                    <div class="psd-info">
+                        <div class="psd-title">${psd.filename}</div>
+                        <div class="psd-meta">Größe: ${psd.size} • ${psd.uploaded}</div>
+                        <div class="psd-actions">
+                            <button class="action-btn edit-btn" onclick="editPSD('${psd.id}', '${psd.filename}')">
+                                🖊️ Bearbeiten
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deletePSD('${psd.id}')">
+                                🗑️ Löschen
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function editPSD(psdId, filename) {
+            document.getElementById('loading').style.display = 'block';
+            
+            // Prüfen ob es eine hochgeladene Datei ist
+            if (uploadedFiles.has(psdId)) {
+                loadUploadedFileInPhotopea(psdId, filename);
+            } else {
+                loadDemoFileInPhotopea(psdId, filename);
+            }
+        }
+
+        function loadUploadedFileInPhotopea(psdId, filename) {
+            const file = uploadedFiles.get(psdId);
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                
+                // Photopea mit Base64-Daten laden
+                const photopeaUrl = `https://www.photopea.com#%7B%22resources%22:%5B%22data:application/octet-stream;base64,${base64}%22%5D%7D`;
+                
+                showEditor(filename, photopeaUrl);
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function loadDemoFileInPhotopea(psdId, filename) {
+            // Für Demo-Dateien: Leere Photopea-Instanz mit Hinweis
+            const photopeaUrl = 'https://www.photopea.com';
+            showEditor(filename, photopeaUrl);
+            
+            // Hinweis anzeigen
+            setTimeout(() => {
+                alert(`Demo-Modus: "${filename}" ist eine Beispieldatei.\n\nIn der echten Anwendung würde hier die PSD-Datei automatisch geladen werden.\n\nFür Testzwecke laden Sie bitte eine eigene PSD-Datei über den Admin-Bereich hoch.`);
+            }, 2000);
+        }
+
+        function showEditor(filename, url) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('editorTitle').textContent = `Bearbeite: ${filename}`;
+            document.getElementById('photopea-frame').src = url;
+            document.getElementById('editorContainer').style.display = 'block';
+            document.getElementById('editorContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deletePSD(psdId) {
+            if (confirm('Möchten Sie diese PSD-Datei wirklich löschen?')) {
+                psdLibrary = psdLibrary.filter(psd => psd.id !== psdId);
+                uploadedFiles.delete(psdId);
+                renderPSDGallery();
+                alert('PSD-Datei wurde gelöscht.');
+            }
+        }
+
+        function saveFile() {
+            alert('💡 Speicher-Tipp:\n\n1. Verwenden Sie in Photopea "File → Export as"\n2. Wählen Sie Ihr gewünschtes Format (PNG, JPG, PDF, etc.)\n3. Die Datei wird auf Ihren Computer heruntergeladen\n\nAlternativ: "File → Save as PSD" für Photoshop-Format');
+        }
+
+        function closeEditor() {
+            document.getElementById('editorContainer').style.display = 'none';
+            document.querySelector('.psd-gallery').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function toggleAdminSection() {
+            const panel = document.getElementById('adminPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        // Initiale Darstellung der Galerie
+        renderPSDGallery();
+    </script>
+</body>
+</html>
