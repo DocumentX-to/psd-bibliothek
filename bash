@@ -1,2 +1,2 @@
-git clone https://github.com/IHR-USERNAME/psd-bibliothek.git
+git clone https://github.com/Document-X.to/psd-bibliothek.git
 cd psd-bibliothek
