@@ -290,16 +290,47 @@
             </button>
             
             <div id="adminPanel" class="hidden">
-                <h2>PSD-Dateien zur Bibliothek hinzufügen</h2>
+                <h2>PSD-Dateien zur GitHub-Bibliothek hinzufügen</h2>
+                
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+                    <h4 style="margin: 0 0 10px 0; color: #1976d2;">📚 So fügen Sie PSD-Dateien zu GitHub hinzu:</h4>
+                    <ol style="margin: 10px 0; padding-left: 20px; line-height: 1.6;">
+                        <li><strong>Ordner erstellen:</strong> Erstellen Sie einen <code>psd-files/</code> Ordner in Ihrem Repository</li>
+                        <li><strong>PSD-Dateien hochladen:</strong> Ziehen Sie Ihre .psd Dateien in diesen Ordner</li>
+                        <li><strong>Code aktualisieren:</strong> Fügen Sie die neuen Dateien zur <code>psdLibrary</code> hinzu</li>
+                        <li><strong>Repository-Name ändern:</strong> Aktualisieren Sie <code>GITHUB_REPO</code> oben im Code</li>
+                    </ol>
+                </div>
+
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                    <h5 style="margin: 0 0 10px 0;">⚙️ Konfiguration erforderlich:</h5>
+                    <p style="margin: 0;">Ändern Sie in der Datei die Zeile:</p>
+                    <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 4px; display: block; margin: 10px 0;">
+                        const GITHUB_REPO = 'IHR-USERNAME/psd-bibliothek';
+                    </code>
+                    <p style="margin: 10px 0 0 0;">Ersetzen Sie <strong>IHR-USERNAME</strong> durch Ihren echten GitHub-Benutzernamen!</p>
+                </div>
                 
                 <div class="upload-area" id="uploadArea">
                     <div style="font-size: 3em; margin-bottom: 15px;">📁</div>
-                    <h3>PSD-Dateien hier hinziehen oder klicken</h3>
-                    <p>Unterstützte Formate: PSD, AI, XD, Sketch</p>
+                    <h3>Temporärer Upload für Tests</h3>
+                    <p>Laden Sie PSD-Dateien hoch, um sie sofort zu testen (nur für aktuelle Sitzung)</p>
                     <input type="file" id="fileInput" class="file-input" accept=".psd,.ai,.xd,.sketch" multiple>
                     <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                         📁 PSD-Dateien auswählen
                     </button>
+                </div>
+
+                <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #28a745;">
+                    <h5 style="margin: 0 0 10px 0;">✅ GitHub Repository-Struktur:</h5>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 0; font-size: 0.9em;">
+psd-bibliothek/
+├── index.html (diese Website)
+├── README.md
+└── psd-files/
+    ├── beispiel-design.psd
+    ├── logo-vorlage.psd
+    └── website-mockup.psd</pre>
                 </div>
             </div>
         </div>
@@ -348,28 +379,38 @@
     </div>
 
     <script>
-        // Simulierte PSD-Bibliothek (in echter Anwendung: Server-Database)
+        // GitHub-basierte PSD-Bibliothek
+        // WICHTIG: Passen Sie diese URLs an Ihr Repository an!
+        const GITHUB_REPO = 'DocumentX-to'; // ⬅️ ÄNDERN SIE DIES!
+        const GITHUB_BRANCH = 'main';
+        
         let psdLibrary = [
             {
                 id: 'beispiel-design',
                 filename: 'Beispiel-Design.psd',
+                githubPath: 'psd-files/beispiel-design.psd',
                 size: '15.2 MB',
                 uploaded: 'Heute',
-                preview: '🎨'
+                preview: '🎨',
+                description: 'Modernes Logo-Design Template'
             },
             {
                 id: 'logo-vorlage',
                 filename: 'Logo-Vorlage.psd',
+                githubPath: 'psd-files/logo-vorlage.psd',
                 size: '8.7 MB',
                 uploaded: 'Gestern',
-                preview: '🏷️'
+                preview: '🏷️',
+                description: 'Professionelle Logo-Vorlage'
             },
             {
                 id: 'website-mockup',
                 filename: 'Website-Mockup.psd',
+                githubPath: 'psd-files/website-mockup.psd',
                 size: '22.4 MB',
                 uploaded: 'Vor 2 Tagen',
-                preview: '💻'
+                preview: '💻',
+                description: 'Responsive Website-Mockup'
             }
         ];
 
@@ -464,13 +505,14 @@
                     <div class="psd-info">
                         <div class="psd-title">${psd.filename}</div>
                         <div class="psd-meta">Größe: ${psd.size} • ${psd.uploaded}</div>
+                        ${psd.description ? `<div style="color: #888; font-size: 0.8em; margin: 5px 0;">${psd.description}</div>` : ''}
                         <div class="psd-actions">
                             <button class="action-btn edit-btn" onclick="editPSD('${psd.id}', '${psd.filename}')">
                                 🖊️ Bearbeiten
                             </button>
-                            <button class="action-btn delete-btn" onclick="deletePSD('${psd.id}')">
-                                🗑️ Löschen
-                            </button>
+                            ${psd.githubPath ? `<button class="action-btn" style="background: #007bff;" onclick="downloadPSD('${psd.githubPath}', '${psd.filename}')">
+                                💾 Download
+                            </button>` : ''}
                         </div>
                     </div>
                 `;
@@ -478,15 +520,59 @@
             });
         }
 
-        function editPSD(psdId, filename) {
+        async function editPSD(psdId, filename) {
             document.getElementById('loading').style.display = 'block';
             
-            // Prüfen ob es eine hochgeladene Datei ist
-            if (uploadedFiles.has(psdId)) {
+            const psd = psdLibrary.find(p => p.id === psdId);
+            
+            if (psd && psd.githubPath) {
+                await loadGitHubFileInPhotopea(psd.githubPath, filename);
+            } else if (uploadedFiles.has(psdId)) {
                 loadUploadedFileInPhotopea(psdId, filename);
             } else {
                 loadDemoFileInPhotopea(psdId, filename);
             }
+        }
+
+        async function loadGitHubFileInPhotopea(githubPath, filename) {
+            try {
+                // GitHub Raw URL für Datei
+                const rawUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${githubPath}`;
+                
+                // Datei von GitHub laden
+                const response = await fetch(rawUrl);
+                if (!response.ok) {
+                    throw new Error(`GitHub-Datei nicht gefunden: ${response.status}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                
+                // Photopea mit Base64-Daten laden
+                const photopeaUrl = `https://www.photopea.com#%7B%22resources%22:%5B%22data:application/octet-stream;base64,${base64}%22%5D%7D`;
+                
+                showEditor(filename, photopeaUrl);
+                
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                alert(`❌ Fehler beim Laden der Datei: ${error.message}\n\nMögliche Lösungen:\n1. Überprüfen Sie, ob die PSD-Datei in GitHub hochgeladen wurde\n2. Stellen Sie sicher, dass der Pfad korrekt ist\n3. Repository muss öffentlich sein für direkten Zugriff`);
+                
+                // Fallback: Leere Photopea-Instanz
+                showEditor(filename, 'https://www.photopea.com');
+            }
+        }
+
+        function downloadPSD(githubPath, filename) {
+            const downloadUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${githubPath}`;
+            
+            // Download-Link erstellen
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = filename;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function loadUploadedFileInPhotopea(psdId, filename) {
